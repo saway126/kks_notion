@@ -1,0 +1,35 @@
+name: Auto Update Notion Portfolio
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'portfolio.html' ]
+  schedule:
+    - cron: '0 9 * * 1'  # 매주 월요일 오전 9시
+
+jobs:
+  update-notion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Update Notion Portfolio
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+        run: node notion-api-automation.js
+        
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Auto update portfolio from HTML" || exit 0
+          git push
